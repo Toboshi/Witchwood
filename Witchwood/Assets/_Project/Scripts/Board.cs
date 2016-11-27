@@ -15,6 +15,15 @@ public class Board : MonoBehaviour
     float m_TileDensity = 0.5f;
 
     [SerializeField]
+    int m_LootWeight = 10;
+
+    [SerializeField]
+    int m_TrapWeight = 10;
+
+    [SerializeField]
+    int m_EnemyWeight = 10;
+
+    [SerializeField]
     [Range(1, 4)]
     int m_CharacterCount = 1;
     List<Player> m_Characters = null;
@@ -87,6 +96,10 @@ public class Board : MonoBehaviour
         }
 
         //Set tile types
+        float weightAmount = m_LootWeight + m_TrapWeight + m_EnemyWeight;
+        float lootWeight = m_LootWeight / weightAmount;
+        float trapWeight = m_TrapWeight / weightAmount;
+
         List<int> indices = new List<int>();
         int tileCount = Mathf.FloorToInt(m_BoardSize * m_BoardSize * m_TileDensity);
         for (int i = 0; i < tileCount; i++)
@@ -110,12 +123,12 @@ public class Board : MonoBehaviour
                 Tile t = GetTile(rng);
                 t.SetTileType(Tile.Type.Jester, (Instantiate(m_JesterPrefabs[0], t.transform.position, Quaternion.identity) as GameObject).transform);
             }
-            else if (i <= tileCount * 0.33f)
+            else if (i <= tileCount * lootWeight)
             {
                 Tile t = GetTile(rng);
                 t.SetTileType(Tile.Type.Loot, (Instantiate(m_LootPrefab, t.transform.position, Quaternion.identity) as GameObject).transform);
             }
-            else if (i <= tileCount * 0.66f)
+            else if (i <= tileCount * lootWeight + trapWeight)
             {
                 Tile t = GetTile(rng);
                 t.SetTileType(Tile.Type.Trap, (Instantiate(m_TrapPrefab, t.transform.position, Quaternion.identity) as GameObject).transform);
