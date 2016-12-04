@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 [RequireComponent(typeof(Rigidbody))]
-public class Player : MonoBehaviour
+public class Player : Character
 {
     [SerializeField]
     string m_CharacterName = "Character Name";
@@ -10,31 +10,38 @@ public class Player : MonoBehaviour
     Rigidbody m_Body = null;
     Inventory m_Inventory = null;
     bool m_IsActive = false;
-
-    int m_MaxHP = 6;
-    int m_HP = 1;
     int m_Aspect = 0;
 
-	void Start()
+    protected override void Start()
     {
+        base.Start();
+
         m_Body = GetComponent<Rigidbody>();
         m_Inventory = new Inventory();
-
-        m_HP = m_MaxHP;
 	}
 	
 	void FixedUpdate()
     {
         m_Body.velocity = Vector3.zero;
         if (!m_IsActive) return;
-
-        if (Board.i.m_AllowRotation) transform.Rotate(transform.up, Input.GetAxis("mouse x"));
-
+        
         Vector3 movement = Vector3.zero;
-        movement += transform.forward * Input.GetAxis("Vertical");
-        movement += transform.right * Input.GetAxis("Horizontal");
+        if (Board.i.GetGameState() == Board.GameState.Movement)
+        {
+            transform.Rotate(transform.up, Input.GetAxis("mouse x"));
+            movement += transform.forward * Input.GetAxis("Vertical");
+        }
+        if (Board.i.GetGameState() == Board.GameState.Movement || Board.i.GetGameState() == Board.GameState.Battle)
+        {
+            movement += transform.right * Input.GetAxis("Horizontal");
+        }
         if (movement.magnitude > 1) movement.Normalize();
-        if (Board.i.m_AllowMovement) m_Body.velocity += movement * 5;
+
+        if (Board.i.GetGameState() == Board.GameState.Battle)
+        {
+            movement *= 1.5f;
+        }
+        m_Body.velocity += movement * 5;
     }
 
     public bool PickupItem(Item aItem)
@@ -45,12 +52,6 @@ public class Player : MonoBehaviour
         return true;
     }
 
-    public void ChangeHealth(int aHealthChange)
-    {
-        m_HP += aHealthChange;
-        if (m_HP > m_MaxHP) m_HP = m_MaxHP;
-    }
-
     public bool GetIsActive() { return m_IsActive; }
 
     public void SetIsActive(bool aActive) { m_IsActive = aActive; }
@@ -58,10 +59,6 @@ public class Player : MonoBehaviour
     public Inventory GetInventory() { return m_Inventory; }
 
     public string GetName() { return m_CharacterName; }
-
-    public int GetHP() { return m_HP; }
-
-    public int GetMaxHP() { return m_MaxHP; }
 
     public int GetAspect() { return m_Aspect; }
 }

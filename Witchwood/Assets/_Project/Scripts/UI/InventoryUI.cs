@@ -92,8 +92,9 @@ public class InventoryUI : MonoBehaviour
     {
 	    if (Input.GetKeyDown(KeyCode.Tab))
         {
-            Board.i.m_AllowRotation = m_IsActive;
             SetActive(!m_IsActive);
+            if (Board.i.GetGameState() != Board.GameState.Battle)
+                Board.i.SetGameState(m_IsActive ? Board.GameState.Menu : Board.GameState.Movement);
         }
         if (Input.GetKeyDown(KeyCode.Space) && m_SelectedItem != null)
         {
@@ -142,6 +143,8 @@ public class InventoryUI : MonoBehaviour
 
     public void SetActiveCharacter(int aIndex)
     {
+        if (Board.i.GetGameState() == Board.GameState.Battle) return;
+
         Board.i.SetActiveCharacter(aIndex);
         UpdateInventory();
     }

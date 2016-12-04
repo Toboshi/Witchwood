@@ -21,7 +21,7 @@ public class StatisticsUI : MonoBehaviour
 	void Update ()
     {
         m_NameText.text = Board.i.GetActiveCharacter().GetName();
-        m_HealthText.text = Board.i.GetActiveCharacter().GetHP().ToString() + " / " + Board.i.GetActiveCharacter().GetMaxHP().ToString();
+        m_HealthText.text = Board.i.GetActiveCharacter().GetHealth().ToString() + " / " + Board.i.GetActiveCharacter().GetMaxHealth().ToString();
         m_AspectText.text = Board.i.GetActiveCharacter().GetAspect().ToString();
     }
 }

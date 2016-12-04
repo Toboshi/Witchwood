@@ -6,6 +6,14 @@ public class Board : MonoBehaviour
 {
     public static Board i = null;
 
+    public enum GameState
+    {
+        Movement,
+        Menu,
+        Battle,
+        Other
+    }
+
     [Header("Settings")]
     [SerializeField]
     int m_BoardSize = 10;
@@ -51,8 +59,7 @@ public class Board : MonoBehaviour
     GameObject[] m_BossPrefabs = null;
 
     Tile[,] m_Tiles = null;
-
-    public bool m_AllowRotation = true; public bool m_AllowMovement = true; //These are super temporary.  They really should be in a game manager, but I don't have one of those yet.
+    GameState m_State = GameState.Movement;
 
     void Awake ()
     {
@@ -141,6 +148,16 @@ public class Board : MonoBehaviour
         }
 	}
 
+    public GameState GetGameState()
+    {
+        return m_State;
+    }
+
+    public void SetGameState(GameState aState)
+    {
+        m_State = aState;
+    }
+
     public int GetCharacterCount()
     {
         return m_CharacterCount;
@@ -166,6 +183,24 @@ public class Board : MonoBehaviour
         for (int i = 0; i < m_Characters.Count; i++)
         {
             if (i == aIndex)
+            {
+                Camera.main.transform.parent = m_Characters[i].transform;
+                Camera.main.transform.eulerAngles = new Vector3(10, m_Characters[i].transform.eulerAngles.y, 0);
+                Camera.main.transform.localPosition = new Vector3(1, 3.5f, -6);
+                m_Characters[i].SetIsActive(true);
+            }
+            else
+            {
+                m_Characters[i].SetIsActive(false);
+            }
+        }
+    }
+
+    public void SetActiveCharacter(Player aCharacter)
+    {
+        for (int i = 0; i < m_Characters.Count; i++)
+        {
+            if (m_Characters[i] == aCharacter)
             {
                 Camera.main.transform.parent = m_Characters[i].transform;
                 Camera.main.transform.eulerAngles = new Vector3(10, m_Characters[i].transform.eulerAngles.y, 0);

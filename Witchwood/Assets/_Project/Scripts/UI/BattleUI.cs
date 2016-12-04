@@ -27,34 +27,47 @@ public class BattleUI : MonoBehaviour
 	
 	void Update ()
     {
-	    
+        if (m_Enemy == null) return;
+
+        m_EnemyHealth.value = m_Enemy.GetHealthPercent();
 	}
 
     public void BattleStart(Enemy aEnemy)
     {
-        Board.i.m_AllowMovement = false;
-        Board.i.m_AllowRotation = false;
+        FindObjectOfType<DatMusics>().PlayCombatTrack();
+
+        Vector3 pos = aEnemy.transform.position + Vector3.forward * 20;
+        Vector3 posS = aEnemy.transform.position + Vector3.back * 20;
+        Vector3 posE = aEnemy.transform.position + Vector3.left * 20;
+        Vector3 posW = aEnemy.transform.position + Vector3.right * 20;
+        Vector3 playerPos = Board.i.GetActiveCharacter().transform.position;
+        if (Vector3.Distance(playerPos, posS) < Vector3.Distance(playerPos, pos)) pos = posS;
+        if (Vector3.Distance(playerPos, posE) < Vector3.Distance(playerPos, pos)) pos = posE;
+        if (Vector3.Distance(playerPos, posW) < Vector3.Distance(playerPos, pos)) pos = posW;
+        aEnemy.transform.LookAt(new Vector3(pos.x, aEnemy.transform.position.y, pos.z));
+        Board.i.GetActiveCharacter().transform.position = pos;
+        Board.i.GetActiveCharacter().transform.LookAt(aEnemy.transform);
+        Camera.main.transform.position = Camera.main.transform.position + Vector3.up + Board.i.GetActiveCharacter().transform.forward * 2;
+        Camera.main.transform.Rotate(Vector3.right * 20);
+
+        Board.i.SetGameState(Board.GameState.Battle);
         m_BattlePanel.gameObject.SetActive(true);
         m_EnemyPanel.gameObject.SetActive(true);
         m_Enemy = aEnemy;
     }
 
-    void BattleEnd()
+    public void BattleEnd()
     {
-        Board.i.m_AllowMovement = true;
-        Board.i.m_AllowRotation = true;
+        FindObjectOfType<DatMusics>().PlayOverworldTrack();
+
+        Board.i.SetActiveCharacter(Board.i.GetActiveCharacter());
+        Board.i.SetGameState(Board.GameState.Movement);
         m_BattlePanel.gameObject.SetActive(false);
         m_EnemyPanel.gameObject.SetActive(false);
         m_Enemy = null;
 
         StopCoroutine(m_FightCoroutine);
         m_FightCoroutine = null;
-    }
-
-    public void Flee()
-    {
-        Board.i.GetActiveCharacter().ChangeHealth(-1);
-        BattleEnd();
     }
 
     public void Attack()
@@ -68,37 +81,14 @@ public class BattleUI : MonoBehaviour
     {
         m_BattlePanel.gameObject.SetActive(false);
 
-        int damage = Random.Range(0, 7);
-        if (damage > 0)
-        {
-            m_Enemy.ChangeHealth(-damage);
-            FindObjectOfType<TrapUI>().Activate(damage.ToString());
-            m_EnemyHealth.value = m_Enemy.GetHealth();
+        Board.i.GetActiveCharacter().Attack(m_Enemy);
+        m_Enemy.Dodge();
 
-            if (m_Enemy.GetHealth() <= 0)
-            {
-                BattleEnd();
-            }
-        }
-        else
-        {
-            FindObjectOfType<TrapUI>().Activate("Miss");
-        }
+        yield return new WaitForSeconds(10);
 
-        yield return new WaitForSeconds(2.5f);
+        m_Enemy.Attack(Board.i.GetActiveCharacter());
 
-        damage = m_Enemy.GetDamage() + Random.Range(-3, 3) - 4;
-        if (damage > 0)
-        {
-            Board.i.GetActiveCharacter().ChangeHealth(-damage);
-            FindObjectOfType<TrapUI>().Activate(damage.ToString());
-        }
-        else
-        {
-            FindObjectOfType<TrapUI>().Activate("Miss");
-        }
-
-        yield return new WaitForSeconds(2.5f);
+        yield return new WaitForSeconds(10);
 
         m_BattlePanel.gameObject.SetActive(true);
         m_FightCoroutine = null;
