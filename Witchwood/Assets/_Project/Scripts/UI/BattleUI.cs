@@ -16,8 +16,16 @@ public class BattleUI : MonoBehaviour
     [SerializeField]
     Slider m_EnemyHealth = null;
 
+    [SerializeField]
+    Text m_PowerText = null;
+
     IEnumerator m_FightCoroutine = null;
     Enemy m_Enemy = null;
+    float BATTLE_DIST = 16;
+
+    float m_SpeedMod = 1;
+    public int m_Armor = 0;
+    public int m_Power = 0;
 
     void Start ()
     {
@@ -30,16 +38,25 @@ public class BattleUI : MonoBehaviour
         if (m_Enemy == null) return;
 
         m_EnemyHealth.value = m_Enemy.GetHealthPercent();
+        m_PowerText.text = m_Power.ToString();
+
+        Transform player = Board.i.GetActiveCharacter().transform;
+        float dist = Vector3.Distance(player.position, m_Enemy.transform.position);
+        if (dist > BATTLE_DIST)
+        {
+            player.position += (m_Enemy.transform.position - player.position).normalized * (dist - BATTLE_DIST);
+        }
+        player.LookAt(m_Enemy.transform);
 	}
 
     public void BattleStart(Enemy aEnemy)
     {
         FindObjectOfType<DatMusics>().PlayCombatTrack();
 
-        Vector3 pos = aEnemy.transform.position + Vector3.forward * 20;
-        Vector3 posS = aEnemy.transform.position + Vector3.back * 20;
-        Vector3 posE = aEnemy.transform.position + Vector3.left * 20;
-        Vector3 posW = aEnemy.transform.position + Vector3.right * 20;
+        Vector3 pos = aEnemy.transform.position + Vector3.forward * BATTLE_DIST;
+        Vector3 posS = aEnemy.transform.position + Vector3.back * BATTLE_DIST;
+        Vector3 posE = aEnemy.transform.position + Vector3.left * BATTLE_DIST;
+        Vector3 posW = aEnemy.transform.position + Vector3.right * BATTLE_DIST;
         Vector3 playerPos = Board.i.GetActiveCharacter().transform.position;
         if (Vector3.Distance(playerPos, posS) < Vector3.Distance(playerPos, pos)) pos = posS;
         if (Vector3.Distance(playerPos, posE) < Vector3.Distance(playerPos, pos)) pos = posE;
@@ -54,6 +71,10 @@ public class BattleUI : MonoBehaviour
         m_BattlePanel.gameObject.SetActive(true);
         m_EnemyPanel.gameObject.SetActive(true);
         m_Enemy = aEnemy;
+
+        m_SpeedMod = 1;
+        m_Armor = 0;
+        m_Power = 2;
     }
 
     public void BattleEnd()
@@ -77,19 +98,41 @@ public class BattleUI : MonoBehaviour
         StartCoroutine(m_FightCoroutine);
     }
 
+    public void IncSpeedMod()
+    {
+        if (m_Power < 2) return;
+
+        m_SpeedMod += 0.25f;
+        m_Power -= 2;
+    }
+
+    public float GetSpeedMod()
+    {
+        return m_SpeedMod;
+    }
+
+    public void ArmorUp()
+    {
+        if (m_Power < 3) return;
+
+        m_Armor++;
+        m_Power -= 3;
+    }
+
     IEnumerator fight_cr()
     {
         m_BattlePanel.gameObject.SetActive(false);
 
-        Board.i.GetActiveCharacter().Attack(m_Enemy);
-        m_Enemy.Dodge();
+        if (m_Enemy.ChangeHealth(-m_Power)) BattleEnd();
+        m_Power = 0;
 
-        yield return new WaitForSeconds(10);
+        yield return new WaitForSeconds(1);
 
         m_Enemy.Attack(Board.i.GetActiveCharacter());
 
-        yield return new WaitForSeconds(10);
+        yield return new WaitForSeconds(20);
 
+        m_Armor = 0;
         m_BattlePanel.gameObject.SetActive(true);
         m_FightCoroutine = null;
     }

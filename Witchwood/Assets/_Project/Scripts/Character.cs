@@ -28,7 +28,7 @@ public class Character : MonoBehaviour
         }
     }
 
-    public bool ChangeHealth(int aHealthChange)
+    public virtual bool ChangeHealth(int aHealthChange)
     {
         m_Health += aHealthChange;
         if (m_Health > m_MaxHealth) m_Health = m_MaxHealth;

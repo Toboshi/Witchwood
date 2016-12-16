@@ -53,7 +53,7 @@ public class Pattern : MonoBehaviour
 
     protected virtual IEnumerator pattern_cr(Character aTarget)
     {
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < 20; i++)
         {
             Fire(transform.position + transform.forward * 20, aTarget);
             Fire(transform.position + transform.forward * 20 + aTarget.transform.right * 3, aTarget);

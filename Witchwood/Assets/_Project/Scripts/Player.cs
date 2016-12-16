@@ -26,20 +26,17 @@ public class Player : Character
         if (!m_IsActive) return;
         
         Vector3 movement = Vector3.zero;
-        if (Board.i.GetGameState() == Board.GameState.Movement)
+        if (Board.i.GetGameState() == Board.GameState.Movement || Board.i.GetGameState() == Board.GameState.Battle)
         {
             transform.Rotate(transform.up, Input.GetAxis("mouse x"));
             movement += transform.forward * Input.GetAxis("Vertical");
-        }
-        if (Board.i.GetGameState() == Board.GameState.Movement || Board.i.GetGameState() == Board.GameState.Battle)
-        {
             movement += transform.right * Input.GetAxis("Horizontal");
         }
         if (movement.magnitude > 1) movement.Normalize();
 
         if (Board.i.GetGameState() == Board.GameState.Battle)
         {
-            movement *= 1.5f;
+            movement *= FindObjectOfType<BattleUI>().GetSpeedMod();
         }
         m_Body.velocity += movement * 5;
     }
@@ -50,6 +47,36 @@ public class Player : Character
 
         m_Inventory.Backpack.Add(aItem);
         return true;
+    }
+
+    public override bool ChangeHealth(int aHealthChange)
+    {
+        if (Board.i.GetGameState() == Board.GameState.Battle && aHealthChange < 0)
+        {
+            BattleUI battle = FindObjectOfType<BattleUI>();
+            while(aHealthChange < 0)
+            {
+                aHealthChange++;
+
+                if (battle.m_Armor > 0)
+                    battle.m_Armor--;
+                else
+                    m_Health--;
+            }
+        }
+        else
+        {
+            m_Health += aHealthChange;
+        }
+
+        if (m_Health > m_MaxHealth) m_Health = m_MaxHealth;
+        if (m_Health <= 0)
+        {
+            //gameObject.SetActive(false);
+            return true;
+        }
+
+        return false;
     }
 
     public bool GetIsActive() { return m_IsActive; }

@@ -14,7 +14,15 @@ public class Bullet : MonoBehaviour
         Character hit = other.GetComponent<Character>();
         if (hit == m_Target)
         {
-            if (hit.ChangeHealth(-m_Damage)) FindObjectOfType<BattleUI>().BattleEnd();
+            if (m_Damage > 0)
+            {
+                if (hit.ChangeHealth(-m_Damage)) FindObjectOfType<BattleUI>().BattleEnd();
+            }
+            else
+            {
+                FindObjectOfType<BattleUI>().m_Power++;
+            }
+
             m_Pattern.RemoveBullet(this);
         }
     }
@@ -24,5 +32,10 @@ public class Bullet : MonoBehaviour
         m_Pattern = aPattern;
         m_Target = aTarget;
         m_Damage = aDamage;
+
+        if(m_Damage == 0)
+        {
+            transform.Find("Mesh").GetComponent<Renderer>().material.color = Color.green;
+        }
     }
 }

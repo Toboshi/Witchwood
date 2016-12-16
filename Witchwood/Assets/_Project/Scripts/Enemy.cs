@@ -15,7 +15,7 @@ public class Enemy : Character
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.tag == "Player")
+        if (other.tag == "Player" && Board.i.GetGameState() != Board.GameState.Battle)
         {
             FindObjectOfType<BattleUI>().BattleStart(this);
         }

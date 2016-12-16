@@ -5,7 +5,7 @@ public class PatternAimed : Pattern
 {
     protected override IEnumerator pattern_cr(Character aTarget)
     {
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < 20; i++)
         {
             Fire(aTarget.transform.position, aTarget);
             Fire(aTarget.transform.position + aTarget.transform.right * 2, aTarget);
